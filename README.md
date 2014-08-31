@@ -1,3 +1,3 @@
 CS480 Graphics Class
-
-Alexander Falconi
+==================
+Programming Assignments by Alexander Falconi
