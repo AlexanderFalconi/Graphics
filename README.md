@@ -1,5 +1,3 @@
-CS480Falconi
-============
+CS480 Graphics Class
 
-UNR: Graphics Class
 Alexander Falconi
