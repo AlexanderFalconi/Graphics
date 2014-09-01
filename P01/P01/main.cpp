@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <chrono>
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -233,28 +235,17 @@ bool initialize()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
 
 	//--Geometry done
-
-	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER); 
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
 	//Shader Sources
-	// Put these into files and write a loader in the future
-	// Note the added uniform!
-	const char *vs =
-		"attribute vec3 v_position;"
-		"attribute vec3 v_color;"
-		"varying vec3 color;"
-		"uniform mat4 mvpMatrix;"
-		"void main(void){"
-		"   gl_Position = mvpMatrix * vec4(v_position, 1.0);"
-		"   color = v_color;"
-		"}";
-
-	const char *fs =
-		"varying vec3 color;"
-		"void main(void){"
-		"   gl_FragColor = vec4(color.rgb, 1.0);"
-		"}";
+	std::ifstream file("shader.vert");
+	std::string vsContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	const char *vs = vsContent.c_str();
+	file.close();
+	file.open("shader.frag");
+	std::string fsContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	const char *fs = fsContent.c_str();
 
 	//compile the shaders
 	GLint shader_status;
