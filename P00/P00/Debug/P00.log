@@ -1,0 +1,10 @@
+﻿Build started 08/31/14 12:52:39 PM.
+     1>Project "C:\Users\OfficeMax\Documents\Alex\UNR\Graphics\P00\P00\P00.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(381,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (P0.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+     1>Link:
+         P00.vcxproj -> C:\Users\OfficeMax\Documents\Alex\UNR\Graphics\P00\P00\Debug\P00.exe
+     1>Done Building Project "C:\Users\OfficeMax\Documents\Alex\UNR\Graphics\P00\P00\P00.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.16
