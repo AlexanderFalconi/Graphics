@@ -1,0 +1,12 @@
+Special Linux Instructions: 
+
+This ran in Ubuntu without issues. Libraries used: GLM Glew glut
+
+Controls: 
+
+a on keyboard and left mouse button reverse the rotation
+right click to access pop up menu which can start, pause rotation, and quit.
+
+Make will create the executable in /src 
+To run type ./main
+
