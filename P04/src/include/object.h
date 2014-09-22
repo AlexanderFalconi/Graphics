@@ -1,11 +1,26 @@
+#include <cstdlib>
+#include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <chrono>
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+
+class Universe;
+class List;
+
 class Object
 {
 	private:
 		std::string name;
 		double mass;
 		double density;
+		Universe *daemon;
 		Object *environment;
-		List *inventory;
+		List* inventory;
 		GLint loc_position;
 		GLint loc_color;
 		GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -18,7 +33,7 @@ class Object
 		{
 			bool active;
 			bool inverse;
-			float position;
+			float angle;
 			float velocity;
 			float tilt;
 			Momentum() 
@@ -33,12 +48,12 @@ class Object
 		Momentum orbit;
 
 	public:
-		Object ();
-		Object (std::string obName, double obMass, double obDensity);
+		Object (Universe *d);
+		Object (Universe *d, std::string obName, double obMass, double obDensity);
 		double getMass();
 		double getDensity();
-		Object *getEnvironment();
-		List *getInventory();
+		Object* getEnvironment();
+		List* getInventory();
 		void initiative();
 		void render();
 		void update();

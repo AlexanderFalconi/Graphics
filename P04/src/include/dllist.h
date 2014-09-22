@@ -1,31 +1,34 @@
+//Reference: https://github.com/h0tk3y/learning-cpp-list
+class Object;
+
 struct List
 {
 	List();
 	List(List const& from);
 	List& operator=(List const& from);
 	~List();
-	void push_back(int x);
+	void push_back(Object* object);
 	void pop_back();
-	int back();
-	void push_front(int x);
+	Object* back();
+	void push_front(Object* object);
 	void pop_front();
-	int front();
+	Object* front();
 
 	struct Node
 	{
-	public:
-		Object* object;
-		Node* next;
-		Node* prev;
+		public:
+			Object* object;
+			Node* next;
+			Node* prev;
 
-		Node() {};
+			Node() {};
 
-		Node(Object* ob, Node* prev, Node* next)
-		{
-			this->object = ob;
-			this->next = next;
-			this->prev = prev;
-		}
+			Node(Object* ob, Node* prev, Node* next)
+			{
+				this->object = ob;
+				this->next = next;
+				this->prev = prev;
+			}
 	};
 
 	Node head, tail;
@@ -41,9 +44,9 @@ struct List
 			this->node_ptr = i;
 		}
 
-		int& operator*() const
+		Object*& operator*() const
 		{
-			return node_ptr->value;
+			return node_ptr->object;
 		}
 
 		void operator++()
@@ -70,5 +73,5 @@ struct List
 	iterator begin;
 	iterator end;
 	void erase(Node* what);
-	iterator insert(Node* before, int x);
+	iterator insert(Node* before, Object* object);
 };

@@ -37,9 +37,9 @@ List::List& operator=(List const& from)
 	}
 }
 
-void List::push_back(int x)
+void List::push_back(Object *object)
 {
-	insert(&tail, x);
+	insert(&tail, object);
 }
 
 void List::pop_back()
@@ -47,14 +47,14 @@ void List::pop_back()
 	erase(tail.prev);
 }
 
-int List::back()
+Object* List::back()
 {
 	return end.node_ptr->prev->value;
 }
 
-void List::push_front(int x)
+void List::push_front(Object *object)
 {
-	insert(head.next, x);
+	insert(head.next, object);
 }
 
 void List::pop_front()
@@ -62,7 +62,7 @@ void List::pop_front()
 	erase(head.next);
 }
 
-int List::front()
+Object* List::front()
 {
 	return begin.node_ptr->next->value;
 }
@@ -74,9 +74,9 @@ void List::erase(Node* what)
 	delete what;
 }
 
-iterator List::insert(Node* before, int x)
+iterator List::insert(Node* before, Object *object)
 { 
-	before->prev = new Node(x, before->prev, before);
+	before->prev = new Node(object, before->prev, before);
 	before->prev->prev->next = before->prev;
 	return iterator(before->prev);
 }
