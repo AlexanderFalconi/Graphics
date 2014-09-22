@@ -6,4 +6,8 @@ void main (void)
 {	
 	gl_Position = mvpMatrix * vec4(v_position, 1.0);
 	color = v_color;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e7929acaf15d9195899e076752d9945507c9f41b
