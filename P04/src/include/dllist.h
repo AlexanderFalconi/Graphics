@@ -14,15 +14,15 @@ struct List
 	struct Node
 	{
 	public:
-		int value;
+		Object* object;
 		Node* next;
 		Node* prev;
 
 		Node() {};
 
-		Node(int v, Node* prev, Node* next)
+		Node(Object* ob, Node* prev, Node* next)
 		{
-			this->value = v;
+			this->object = ob;
 			this->next = next;
 			this->prev = prev;
 		}
@@ -66,8 +66,6 @@ struct List
 			return iterator(node_ptr->prev);
 		}
 	};
-
-	struct iterator;
 
 	iterator begin;
 	iterator end;

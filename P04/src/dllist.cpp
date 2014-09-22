@@ -1,3 +1,4 @@
+//Reference: https://github.com/h0tk3y/learning-cpp-list
 List::List()
 {
 	head = Node(-1, nullptr, nullptr);
