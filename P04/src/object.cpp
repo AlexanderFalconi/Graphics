@@ -1,36 +1,58 @@
-Object::Object(Universe *d)
+#include <GL/glew.h> // glew must be included before the main gl libs
+#define _USE_MATH_DEFINES
+#include <stdlib.h>
+#include <cstdlib>
+#include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <chrono>
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+#include "include/dllist.h"
+#include "include/universe.h"
+#include "include/object.h"
+using namespace std;
+
+Object::Object(Universe* d, GLint program, int width, int height)
 {
 	daemon = d;
-	initialize();
+	environment = nullptr;
+	inventory = new List();
+	initialize(program, width, height);
 }
 
-Object::Object (Universe *d, std::string obName, double obMass, double obDensity)
+Object::Object (Universe *d, std::string obName, float obMass, float obDensity, GLint program, int width, int height)
 {
 	daemon = d;
+	environment = nullptr;
+	inventory = new List();
 	name = obName;
 	mass = obMass;
 	density = obDensity;
-	initialize();
+	initialize(program, width, height);
 }
 
-void initialize()
+bool Object::initialize(GLuint program, int width, int height)
 {
 	//Now we set the locations of the attributes and uniforms
-	loc_position = glGetAttribLocation(daemon->program,
+	loc_position = glGetAttribLocation(program,
 		const_cast<const char*>("v_position"));
 	if (loc_position == -1)
 	{
 		std::cerr << "[F] POSITION NOT FOUND" << std::endl;
 		return false;
 	}
-	loc_color = glGetAttribLocation(daemon->program,
+	loc_color = glGetAttribLocation(program,
 		const_cast<const char*>("v_color"));
 	if (loc_color == -1)
 	{
 		std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
 		return false;
 	}
-	loc_mvpmat = glGetUniformLocation(daemon->program,
+	loc_mvpmat = glGetUniformLocation(program,
 		const_cast<const char*>("mvpMatrix"));
 	if (loc_mvpmat == -1)
 	{
@@ -46,19 +68,25 @@ void initialize()
 		glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
 	projection = glm::perspective(45.0f, //the FoV typically 90 degrees is good which is what this is set to
-		float(daemon->width) / float(daemon->height), //Aspect Ratio, so Circles stay Circular
+		float(width) / float(height), //Aspect Ratio, so Circles stay Circular
 		0.01f, //Distance to the near plane, normally a small value like this
 		100.0f); //Distance to the far plane, 
+	return true;
 }
 
-double Object::getMass()
+float Object::getMass()
 {
 	return mass;
 }
 
-double Object::getDensity()
+float Object::getDensity()
 {
 	return density;
+}
+
+glm::mat4 Object::getModel()
+{
+	return model;
 }
 
 Object *Object::getEnvironment()
@@ -71,12 +99,12 @@ List *Object::getInventory()
 	return inventory;
 }
 
-void Object::render()
+void Object::render(GLuint program, GLuint vbo_geometry, int width, int height)
 {
 	//premultiply the matrix for this example
 	mvp = projection * view * model;
 	//enable the shader program
-	glUseProgram(daemon->program);
+	glUseProgram(program);
 	//upload the matrix to the shader
 	glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
 	//set up the Vertex Buffer Object so it can be drawn
@@ -101,23 +129,52 @@ void Object::render()
 	glDisableVertexAttribArray(loc_position);
 	glDisableVertexAttribArray(loc_color);
 	//Iterate through inventory
-	for (iterator i = iterator(&inventory.head.next); i.node_ptr->next != nullptr; i = i++)
+	Object* nextOb = inventory->forNext();
+	while (nextOb != nullptr)
 	{
-		i.node_ptr->object.render();
-		inventory->iter++;
+		nextOb->render(program, vbo_geometry, width, height);
+		nextOb = inventory->forNext();
 	}
 }
 
-void Object::update()
+void Object::update(float dt)
 {
-	float dt = daemon->getDT();// if you have anything moving, use dt.
-	orbit.position += dt * M_PI / 2; //move through 90 degrees a second
-	rotation.position += dt * M_PI / 2;//spin 90 degrees a second
-	model = glm::translate(glm::mat4(0.1f), glm::vec3(8.0 * sin(orbit.position), 0.0, 8.0 * cos(orbit.position))) * glm::rotate(glm::mat4(1.0f), rotation.position, glm::vec3(0, 1, 0));
+	orbit.angle += dt * M_PI / 2; //move through 90 degrees a second
+	if (rotation.active)
+	{//spin 90 degrees a second
+		if(rotation.inverse)
+			rotation.angle -= dt * M_PI / 2;//counter-clockwise
+		else
+			rotation.angle += dt * M_PI / 2;//clockwise
+	}//else, don't spin
+	if(environment == nullptr)
+		model = glm::translate(glm::mat4(0.1f), glm::vec3(8.0 * sin(orbit.angle), 0.0, 8.0 * cos(orbit.angle))) * glm::rotate(glm::mat4(1.0f), rotation.angle, glm::vec3(0, 1, 0));
+	else
+		model = glm::translate(environment->getModel(), glm::vec3(8.0 * sin(orbit.angle), 0.0, 8.0 * cos(orbit.angle))) * glm::rotate(glm::mat4(1.0f), rotation.angle, glm::vec3(0, 1, 0));
 	//Iterate through inventory
-	for (iterator i = iterator(&inventory.head.next); i.node_ptr->next != nullptr; i = i++)
+	Object* nextOb = inventory->forNext();
+	while (nextOb != nullptr)
 	{
-		i.node_ptr->object.update();
-		inventory->iter++;
+		nextOb->update(dt);
+		nextOb = inventory->forNext();
 	}
+}
+
+void Object::eventMove(Object *ob)
+{
+	if(environment != nullptr)
+		environment->release(this);
+	environment = ob;
+	ob->receive(this);
+}
+
+void Object::receive(Object *ob)
+{
+	inventory->push_back(ob);
+}
+
+void Object::release(Object *ob)
+{
+	//TODO: Need a search algorithm to remove
+	inventory->pop_back();
 }

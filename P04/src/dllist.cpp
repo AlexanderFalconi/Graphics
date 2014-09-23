@@ -1,33 +1,29 @@
 //Reference: https://github.com/h0tk3y/learning-cpp-list
+#include "include/dllist.h"
+
 List::List()
 {
-	head = Node(-1, nullptr, nullptr);
-	tail = Node(-1, &head, nullptr);
+	head = Node(nullptr, nullptr, nullptr);
+	tail = Node(nullptr, &head, nullptr);
 	head.next = &tail;
 	begin = iterator(&head);
 	end = iterator(&tail);
+	at = iterator(&tail);
 }
 
 List::List(List const& from)
 {
-	head = Node(-1, nullptr, nullptr);
-	tail = Node(-1, &head, nullptr);
+	head = Node(nullptr, nullptr, nullptr);
+	tail = Node(nullptr, &head, nullptr);
 	head.next = &tail;
 	begin = iterator(&head);
 	end = iterator(&tail);
 	for (iterator i = iterator(from.head.next); i.node_ptr->next != nullptr; i = i++)
 		insert(&tail, *i);
+	at = iterator(&tail);
 }
 
-List::List& operator=(List const& from)
-{
-	List l = List();
-	for (iterator i = iterator(from.head.next); i.node_ptr->next != nullptr; i = i++)
-		l.insert(&l.tail, *i);
-	return l;
-}
-
-~List::List()
+List::~List()
 {
 	iterator it = iterator(head.next);
 	while (it.node_ptr->next != nullptr)
@@ -49,7 +45,7 @@ void List::pop_back()
 
 Object* List::back()
 {
-	return end.node_ptr->prev->value;
+	return end.node_ptr->prev->object;
 }
 
 void List::push_front(Object *object)
@@ -64,7 +60,7 @@ void List::pop_front()
 
 Object* List::front()
 {
-	return begin.node_ptr->next->value;
+	return begin.node_ptr->next->object;
 }
 
 void List::erase(Node* what)
@@ -74,9 +70,21 @@ void List::erase(Node* what)
 	delete what;
 }
 
-iterator List::insert(Node* before, Object *object)
+List::iterator List::insert(Node* before, Object *object)
 { 
 	before->prev = new Node(object, before->prev, before);
 	before->prev->prev->next = before->prev;
 	return iterator(before->prev);
+}
+
+Object* List::forNext()
+{ 
+	if(at.node_ptr == &tail)
+		at = iterator(head.next);
+	else 
+		at = at.node_ptr->next;
+	if(at.node_ptr == &tail)
+		return nullptr;
+	else
+		return at.node_ptr->object;
 }

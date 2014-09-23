@@ -1,11 +1,13 @@
 //Reference: https://github.com/h0tk3y/learning-cpp-list
+#ifndef __DLLIST_H__
+#define __DLLIST_H__
+
 class Object;
 
 struct List
 {
 	List();
 	List(List const& from);
-	List& operator=(List const& from);
 	~List();
 	void push_back(Object* object);
 	void pop_back();
@@ -13,6 +15,7 @@ struct List
 	void push_front(Object* object);
 	void pop_front();
 	Object* front();
+	Object* forNext();
 
 	struct Node
 	{
@@ -71,7 +74,9 @@ struct List
 	};
 
 	iterator begin;
-	iterator end;
+	iterator end; 
+	iterator at;
 	void erase(Node* what);
 	iterator insert(Node* before, Object* object);
 };
+#endif
