@@ -10,6 +10,7 @@ class Object
 		Universe* daemon;
 		Object* environment;
 		List* inventory;
+		int vertices_size;
 		GLint loc_position;
 		GLint loc_color;
 		GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -17,6 +18,8 @@ class Object
 		glm::mat4 view;//world->eye
 		glm::mat4 projection;//eye->clip
 		glm::mat4 mvp;//premultiplied modelviewprojection
+		GLuint vbo_geometry;// VBO handle for our geometry
+		GLuint vbo_color;// VBO handle for our color
 
 		struct Vertex
 		{
@@ -49,8 +52,9 @@ class Object
 		glm::mat4 getModel();
 		Object* getEnvironment();
 		List* getInventory();
-		void render(GLuint program, GLuint vbo_geometry, int width, int height);
+		void render(GLuint program, int width, int height);
 		void update(float dt);
+		void reshape(int width, int height);
 		bool initialize(GLuint program, int width, int height);
 		void receive(Object *ob);
 		void release(Object *ob);

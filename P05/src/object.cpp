@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -14,6 +15,7 @@
 #include "include/dllist.h"
 #include "include/universe.h"
 #include "include/object.h"
+#include "include/objloader.h"
 using namespace std;
 
 Object::Object(Universe* d, GLint program, int width, int height)
@@ -37,6 +39,19 @@ Object::Object (Universe *d, std::string obName, float obMass, float obDensity, 
 
 bool Object::initialize(GLuint program, int width, int height)
 {
+	//GLuint vbo_geometry;
+	vector<glm::vec3> vertices;
+	vector<glm::vec2> uvs;
+	vector<glm::vec3> normals;
+	load_obj("board.obj", vertices, uvs, normals);
+	vertices_size = vertices.size();
+	// Create a Vertex Buffer object to store this vertex info on the GPU
+	glGenBuffers(1, &vbo_geometry);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	glGenBuffers(1, &vbo_color);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_color);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 	//Now we set the locations of the attributes and uniforms
 	loc_position = glGetAttribLocation(program,
 		const_cast<const char*>("v_position"));
@@ -99,7 +114,7 @@ List *Object::getInventory()
 	return inventory;
 }
 
-void Object::render(GLuint program, GLuint vbo_geometry, int width, int height)
+void Object::render(GLuint program, int width, int height)
 {
 	//premultiply the matrix for this example
 	mvp = projection * view * model;
@@ -109,22 +124,23 @@ void Object::render(GLuint program, GLuint vbo_geometry, int width, int height)
 	glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
 	//set up the Vertex Buffer Object so it can be drawn
 	glEnableVertexAttribArray(loc_position);	
-	glEnableVertexAttribArray(loc_color);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
 	//set pointers into the vbo for each of the attributes(position and color)
 	glVertexAttribPointer(loc_position,//location of attribute
 		3,//number of elements
 		GL_FLOAT,//type
 		GL_FALSE,//normalized?
-		sizeof(Vertex),//stride
-		0);//offset
+		0,//stride
+		(void*)0);//offset
+	glEnableVertexAttribArray(loc_color);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_color);
 	glVertexAttribPointer(loc_color,
-		3,
+		2,
 		GL_FLOAT,
 		GL_FALSE,
-		sizeof(Vertex),
-		(void*)offsetof(Vertex, color));
-	glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+		0,
+		(void*)0);
+	glDrawArrays(GL_TRIANGLES, 0, vertices_size);//mode, starting index, count
 	//clean up
 	glDisableVertexAttribArray(loc_position);
 	glDisableVertexAttribArray(loc_color);
@@ -132,7 +148,18 @@ void Object::render(GLuint program, GLuint vbo_geometry, int width, int height)
 	Object* nextOb = inventory->forNext();
 	while (nextOb != nullptr)
 	{
-		nextOb->render(program, vbo_geometry, width, height);
+		nextOb->render(program, width, height);
+		nextOb = inventory->forNext();
+	}
+}
+
+void Object::reshape(int width, int height)
+{
+	projection = glm::perspective(45.0f, float(width) / float(height), 0.01f, 100.0f);
+	Object* nextOb = inventory->forNext();
+	while (nextOb != nullptr)
+	{
+		nextOb->reshape(width, height);
 		nextOb = inventory->forNext();
 	}
 }

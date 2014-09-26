@@ -1,70 +1,103 @@
-vector<glm::vec4> suzanne_vertices;
-vector<glm::vec3> suzanne_normals;
-vector<GLushort> suzanne_elements;
-load_obj("suzanne.obj", suzanne_vertices, suzanne_normals, suzanne_elements);
+#include <GL/glew.h> // glew must be included before the main gl libs
+#define _USE_MATH_DEFINES
+#include <stdlib.h>
+#include <cstdlib>
+#include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <chrono>
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+#include "include/objloader.h"
+using std::vector;
+using std::string;
+using std::ifstream;
+using std::ios;
+using std::cerr;
+using std::endl;
+using std::istringstream;
 
-void load_obj(const char* filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<GLushort> &elements) 
+bool load_obj(const char* path, vector<glm::vec3> &out_vertices, vector<glm::vec2> &out_uvs, vector<glm::vec3> &out_normals) 
 {
-  ifstream in(filename, ios::in);
-  if (!in) { cerr << "Cannot open " << filename << endl; exit(1); }
- 
-  string line;
-  while (getline(in, line)) {
-    if (line.substr(0,2) == "v ") {
-      istringstream s(line.substr(2));
-      glm::vec4 v; s >> v.x; s >> v.y; s >> v.z; v.w = 1.0f;
-      vertices.push_back(v);
-    }  else if (line.substr(0,2) == "f ") {
-      istringstream s(line.substr(2));
-      GLushort a,b,c;
-      s >> a; s >> b; s >> c;
-      a--; b--; c--;
-      elements.push_back(a); elements.push_back(b); elements.push_back(c);
+  vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+  vector<glm::vec3> temp_vertices;
+  vector<glm::vec2> temp_uvs;
+  vector<glm::vec3> temp_normals;
+  FILE * file = fopen(path, "r");
+  if( file == NULL)
+  {
+    printf("Failed to open object file!\n");
+    return false;
+  }
+  while( 1 )
+  {
+    char lineHeader[128];
+    int res = fscanf(file, "%s", lineHeader);
+    if(res == EOF)
+      break;
+    if(strcmp(lineHeader, "v") == 0)
+    {
+      glm::vec3 vertex;
+      fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+      temp_vertices.push_back(vertex);
     }
-    else if (line[0] == '#') { /* ignoring this line */ }
-    else { /* ignoring this line */ }
+    else if( strcmp(lineHeader, "vt") == 0)
+    {
+      glm::vec2 uv;
+      fscanf(file, "%f %f\n", &uv.x, &uv.y);
+      temp_uvs.push_back(uv);
+    }
+    else if(strcmp(lineHeader, "vn") == 0)
+    {
+      glm::vec3 normal;
+      fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+      temp_normals.push_back(normal);
+    }
+    else if ( strcmp( lineHeader, "f" ) == 0 )
+    {
+      std::string vertex1, vertex2, vertex3;
+      unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+      int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
+      if (matches != 9)
+      {
+          printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+          return false;
+      }
+      vertexIndices.push_back(vertexIndex[0]);
+      vertexIndices.push_back(vertexIndex[1]);
+      vertexIndices.push_back(vertexIndex[2]);
+      uvIndices    .push_back(uvIndex[0]);
+      uvIndices    .push_back(uvIndex[1]);
+      uvIndices    .push_back(uvIndex[2]);
+      normalIndices.push_back(normalIndex[0]);
+      normalIndices.push_back(normalIndex[1]);
+      normalIndices.push_back(normalIndex[2]);
+    }
   }
- 
-  normals.resize(vertices.size(), glm::vec3(0.0, 0.0, 0.0));
-  for (int i = 0; i < elements.size(); i+=3) {
-    GLushort ia = elements[i];
-    GLushort ib = elements[i+1];
-    GLushort ic = elements[i+2];
-    glm::vec3 normal = glm::normalize(glm::cross(
-      glm::vec3(vertices[ib]) - glm::vec3(vertices[ia]),
-      glm::vec3(vertices[ic]) - glm::vec3(vertices[ia])));
-    normals[ia] = normals[ib] = normals[ic] = normal;
+  for(unsigned int i=0; i<vertexIndices.size(); i++)
+  {
+    unsigned int vertexIndex = vertexIndices[i];
+    glm::vec3 vertex = temp_vertices[vertexIndex-1];
+    out_vertices.push_back(vertex);
   }
+  for(unsigned int i=0; i<uvIndices.size(); i++)
+  {
+    unsigned int uvIndex = uvIndices[i];
+    glm::vec2 uv = temp_uvs[uvIndex-1];
+    out_uvs.push_back(uv);
+  }
+  for(unsigned int i=0; i<normalIndices.size(); i++)
+  {
+    unsigned int normalIndex = normalIndices[i];
+    glm::vec3 normal = temp_normals[normalIndex-1];
+    out_normals.push_back(normal);
+  }
+  return true;
 }
-
-
-
-/////////////
-
-  glEnableVertexAttribArray(attribute_v_coord);
-  // Describe our vertices array to OpenGL (it can't guess its format automatically)
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_mesh_vertices);
-  glVertexAttribPointer(
-    attribute_v_coord,  // attribute
-    4,                  // number of elements per vertex, here (x,y,z,w)
-    GL_FLOAT,           // the type of each element
-    GL_FALSE,           // take our values as-is
-    0,                  // no extra data between each position
-    0                   // offset of first element
-  );
- 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_mesh_normals);
-  glVertexAttribPointer(
-    attribute_v_normal, // attribute
-    3,                  // number of elements per vertex, here (x,y,z)
-    GL_FLOAT,           // the type of each element
-    GL_FALSE,           // take our values as-is
-    0,                  // no extra data between each position
-    0                   // offset of first element
-  );
- 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_mesh_elements);
-  int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);  
-  glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
-
-/////////////////

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -14,37 +15,13 @@
 #include "include/dllist.h"
 #include "include/universe.h"
 #include "include/object.h"
-using namespace std;
+using std::string;
+using std::vector;
 
-//--Data types
-//This object will define the attributes of a vertex(position, color, etc...)
-struct Vertex
-{
-	GLfloat position[3];
-	GLfloat color[3];
-};
-
-//--Evil Global variables
-//Just for this example!
 int width = 640, height = 480;// Window size
-bool rotation = true;//handles rotation direction
-bool action = true;//starts and pauses rotation
 int leftClick = 0;//handle left clicking
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
-
-//uniform locations
-GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
-
-//attribute locations
-GLint loc_position;
-GLint loc_color;
-
-//transform matrices
-glm::mat4 model;//obj->world each object should have its own model matrix
-glm::mat4 view;//world->eye
-glm::mat4 projection;//eye->clip
-glm::mat4 mvp;//premultiplied modelviewprojection
 
 //--GLUT Callbacks
 void render();
@@ -107,49 +84,6 @@ int main(int argc, char **argv)
 
 bool initialize()
 {
-	// Initialize basic geometry and shaders for this example
-	Vertex geometry[] = { { { -1.0, -1.0, -1.0 }, { 0.0, 0.0, 0.0 } },
-	{ { -1.0, -1.0, 1.0 }, { 0.0, 0.0, 1.0 } },
-	{ { -1.0, 1.0, 1.0 }, { 0.0, 1.0, 1.0 } },
-	{ { 1.0, 1.0, -1.0 }, { 1.0, 1.0, 0.0 } },
-	{ { -1.0, -1.0, -1.0 }, { 0.0, 0.0, 0.0 } },
-	{ { -1.0, 1.0, -1.0 }, { 0.0, 1.0, 0.0 } },
-	{ { 1.0, -1.0, 1.0 }, { 1.0, 0.0, 1.0 } },
-	{ { -1.0, -1.0, -1.0 }, { 0.0, 0.0, 0.0 } },
-	{ { 1.0, -1.0, -1.0 }, { 1.0, 0.0, 0.0 } },
-	{ { 1.0, 1.0, -1.0 }, { 1.0, 1.0, 0.0 } },
-	{ { 1.0, -1.0, -1.0 }, { 1.0, 0.0, 0.0 } },
-	{ { -1.0, -1.0, -1.0 }, { 0.0, 0.0, 0.0 } },
-	{ { -1.0, -1.0, -1.0 }, { 0.0, 0.0, 0.0 } },
-	{ { -1.0, 1.0, 1.0 }, { 0.0, 1.0, 1.0 } },
-	{ { -1.0, 1.0, -1.0 }, { 0.0, 1.0, 0.0 } },
-	{ { 1.0, -1.0, 1.0 }, { 1.0, 0.0, 1.0 } },
-	{ { -1.0, -1.0, 1.0 }, { 0.0, 0.0, 1.0 } },
-	{ { -1.0, -1.0, -1.0 }, { 0.0, 0.0, 0.0 } },
-	{ { -1.0, 1.0, 1.0 }, { 0.0, 1.0, 1.0 } },
-	{ { -1.0, -1.0, 1.0 }, { 0.0, 0.0, 1.0 } },
-	{ { 1.0, -1.0, 1.0 }, { 1.0, 0.0, 1.0 } },
-	{ { 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0 } },
-	{ { 1.0, -1.0, -1.0 }, { 1.0, 0.0, 0.0 } },
-	{ { 1.0, 1.0, -1.0 }, { 1.0, 1.0, 0.0 } },
-	{ { 1.0, -1.0, -1.0 }, { 1.0, 0.0, 0.0 } },
-	{ { 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0 } },
-	{ { 1.0, -1.0, 1.0 }, { 1.0, 0.0, 1.0 } },
-	{ { 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0 } },
-	{ { 1.0, 1.0, -1.0 }, { 1.0, 1.0, 0.0 } },
-	{ { -1.0, 1.0, -1.0 }, { 0.0, 1.0, 0.0 } },
-	{ { 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0 } },
-	{ { -1.0, 1.0, -1.0 }, { 0.0, 1.0, 0.0 } },
-	{ { -1.0, 1.0, 1.0 }, { 0.0, 1.0, 1.0 } },
-	{ { 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0 } },
-	{ { -1.0, 1.0, 1.0 }, { 0.0, 1.0, 1.0 } },
-	{ { 1.0, -1.0, 1.0 }, { 1.0, 0.0, 1.0 } }
-	};
-	// Create a Vertex Buffer object to store this vertex info on the GPU
-	glGenBuffers(1, &vbo_geometry);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
-	//--Geometry done
 	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER); 
 	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	//Shader Sources
@@ -230,7 +164,7 @@ void reshape(int n_w, int n_h)
 	//Change the viewport to be correct
 	glViewport(0, 0, width, height);
 	//Update the projection matrix as well
-	projection = glm::perspective(45.0f, float(width) / float(height), 0.01f, 100.0f);
+	engine->getCenter()->reshape(width, height);
 }
 
 void keyboard(unsigned char key, int x_pos, int y_pos)
@@ -287,7 +221,7 @@ void render()
 	//clear the screen
 	glClearColor(0.0, 0.0, 0.2, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	engine->getCenter()->render(program, vbo_geometry, width, height);
+	engine->getCenter()->render(program, width, height);
 	//swap the buffers
 	glutSwapBuffers();
 }

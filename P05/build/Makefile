@@ -1,17 +1,14 @@
-all: main.o dllist.o universe.o object.o
-	g++ -Wall -std=c++0x main.o dllist.o universe.o object.o -o ../bin/main -lGLEW -lGL -lglut -lGLU
+CC=g++
+CFLAGS=-Wall -std=c++0x
+LDFLAGS=
+SOURCES=../src/main.cpp ../src/dllist.cpp ../src/universe.cpp ../src/object.cpp ../src/objloader.cpp
+OBJECTS=$(SOURCES: .cpp=.o)
+EXECUTABLE=../bin/main
 
-main.o: ../src/main.cpp
-	g++ -c ../src/main.cpp
+all: $(SOURCES) $(EXECUTABLE)
 
-dllist.o: ../src/dllist.cpp
-	g++ -c ../src/dllist.cpp
-
-universe.o: ../src/universe.cpp
-	g++ -c ../src/universe.cpp
-
-object.o: ../src/object.cpp
-	g++ -c ../src/object.cpp
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@ -lGLEW -lGL -lglut -lGLU
 
 clean:
-	rm -rf *o ../bin/main
+	rm ../bin/main
