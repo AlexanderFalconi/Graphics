@@ -1,3 +1,4 @@
+//https://github.com/peepo/openGL-RPi-tutorial/blob/master/tutorial07_model_loading/tutorial07.cpp
 #include <GL/glew.h> // glew must be included before the main gl libs
 #define _USE_MATH_DEFINES
 #include <stdlib.h>

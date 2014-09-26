@@ -12,17 +12,22 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
-#include "include/dllist.h"
 #include "include/universe.h"
 #include "include/object.h"
 #include "include/objloader.h"
 using namespace std;
 
+struct Vertex
+{
+    GLfloat position[3];
+    GLfloat color[2];
+    GLfloat normals[3];
+};
+
 Object::Object(Universe* d, GLint program, int width, int height)
 {
 	daemon = d;
 	environment = nullptr;
-	inventory = new List();
 	initialize(program, width, height);
 }
 
@@ -30,7 +35,6 @@ Object::Object (Universe *d, std::string obName, float obMass, float obDensity, 
 {
 	daemon = d;
 	environment = nullptr;
-	inventory = new List();
 	name = obName;
 	mass = obMass;
 	density = obDensity;
@@ -39,11 +43,9 @@ Object::Object (Universe *d, std::string obName, float obMass, float obDensity, 
 
 bool Object::initialize(GLuint program, int width, int height)
 {
+ 	Vertex geometry [32];
 	//GLuint vbo_geometry;
-	vector<glm::vec3> vertices;
-	vector<glm::vec2> uvs;
-	vector<glm::vec3> normals;
-	load_obj("board.obj", vertices, uvs, normals);
+	load_obj("board.obj", geometry);
 	vertices_size = vertices.size();
 	// Create a Vertex Buffer object to store this vertex info on the GPU
 	glGenBuffers(1, &vbo_geometry);
@@ -109,7 +111,7 @@ Object *Object::getEnvironment()
 	return environment;
 }
 
-List *Object::getInventory()
+vector<Object*> Object::getInventory()
 {
 	return inventory;
 }
@@ -145,23 +147,16 @@ void Object::render(GLuint program, int width, int height)
 	glDisableVertexAttribArray(loc_position);
 	glDisableVertexAttribArray(loc_color);
 	//Iterate through inventory
-	Object* nextOb = inventory->forNext();
-	while (nextOb != nullptr)
-	{
-		nextOb->render(program, width, height);
-		nextOb = inventory->forNext();
-	}
+	for(unsigned int i=0; i<inventory.size(); i++)
+		inventory[i]->render(program, width, height);
 }
 
 void Object::reshape(int width, int height)
 {
 	projection = glm::perspective(45.0f, float(width) / float(height), 0.01f, 100.0f);
-	Object* nextOb = inventory->forNext();
-	while (nextOb != nullptr)
-	{
-		nextOb->reshape(width, height);
-		nextOb = inventory->forNext();
-	}
+	//Iterate through inventory
+	for(unsigned int i=0; i<inventory.size(); i++)
+		inventory[i]->reshape(width, height);
 }
 
 void Object::update(float dt)
@@ -179,29 +174,25 @@ void Object::update(float dt)
 	else
 		model = glm::translate(environment->getModel(), glm::vec3(8.0 * sin(orbit.angle), 0.0, 8.0 * cos(orbit.angle))) * glm::rotate(glm::mat4(1.0f), rotation.angle, glm::vec3(0, 1, 0));
 	//Iterate through inventory
-	Object* nextOb = inventory->forNext();
-	while (nextOb != nullptr)
-	{
-		nextOb->update(dt);
-		nextOb = inventory->forNext();
-	}
+	for(unsigned int i=0; i<inventory.size(); i++)
+		inventory[i]->update(dt);
 }
 
 void Object::eventMove(Object *ob)
 {
 	if(environment != nullptr)
-		environment->release(this);
+		environment->release();//this);
 	environment = ob;
 	ob->receive(this);
 }
 
 void Object::receive(Object *ob)
 {
-	inventory->push_back(ob);
+	inventory.push_back(ob);
 }
 
-void Object::release(Object *ob)
+void Object::release()
 {
 	//TODO: Need a search algorithm to remove
-	inventory->pop_back();
+	inventory.pop_back();
 }

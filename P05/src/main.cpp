@@ -12,7 +12,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
-#include "include/dllist.h"
 #include "include/universe.h"
 #include "include/object.h"
 using std::string;

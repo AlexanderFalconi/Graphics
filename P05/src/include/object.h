@@ -1,5 +1,6 @@
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
+using std::vector;
 
 class Object
 {
@@ -9,7 +10,7 @@ class Object
 		float density;
 		Universe* daemon;
 		Object* environment;
-		List* inventory;
+		vector<Object*> inventory;
 		int vertices_size;
 		GLint loc_position;
 		GLint loc_color;
@@ -51,13 +52,13 @@ class Object
 		float getDensity();
 		glm::mat4 getModel();
 		Object* getEnvironment();
-		List* getInventory();
+		vector<Object*> getInventory();
 		void render(GLuint program, int width, int height);
 		void update(float dt);
 		void reshape(int width, int height);
 		bool initialize(GLuint program, int width, int height);
 		void receive(Object *ob);
-		void release(Object *ob);
+		void release();
 		void eventMove(Object *ob);
 };
 #endif

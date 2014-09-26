@@ -1,3 +1,4 @@
+//https://github.com/peepo/openGL-RPi-tutorial/blob/master/tutorial07_model_loading/tutorial07.cpp
 #include <GL/glew.h> // glew must be included before the main gl libs
 #define _USE_MATH_DEFINES
 #include <stdlib.h>
@@ -24,7 +25,14 @@ using std::cerr;
 using std::endl;
 using std::istringstream;
 
-bool load_obj(const char* path, vector<glm::vec3> &out_vertices, vector<glm::vec2> &out_uvs, vector<glm::vec3> &out_normals) 
+struct Vertex
+{
+    GLfloat position[3];
+    GLfloat color[2];
+    GLfloat normals[3];
+};
+
+bool load_obj(const char* path, Vertex geometry[])
 {
   vector< unsigned int > vertexIndices, uvIndices, normalIndices;
   vector<glm::vec3> temp_vertices;
@@ -81,23 +89,20 @@ bool load_obj(const char* path, vector<glm::vec3> &out_vertices, vector<glm::vec
       normalIndices.push_back(normalIndex[2]);
     }
   }
-  for(unsigned int i=0; i<vertexIndices.size(); i++)
+  // For each triangle
+  for( unsigned int v=0; v<vertexIndices.size(); v+=3 )
   {
-    unsigned int vertexIndex = vertexIndices[i];
-    glm::vec3 vertex = temp_vertices[vertexIndex-1];
-    out_vertices.push_back(vertex);
-  }
-  for(unsigned int i=0; i<uvIndices.size(); i++)
-  {
-    unsigned int uvIndex = uvIndices[i];
-    glm::vec2 uv = temp_uvs[uvIndex-1];
-    out_uvs.push_back(uv);
-  }
-  for(unsigned int i=0; i<normalIndices.size(); i++)
-  {
-    unsigned int normalIndex = normalIndices[i];
-    glm::vec3 normal = temp_normals[normalIndex-1];
-    out_normals.push_back(normal);
+    // For each vertex of the triangle
+    for ( unsigned int i=0; i<3; i+=1 )
+    {
+      unsigned int vertexIndex = vertexIndices[v+i];
+      glm::vec3 vertex = temp_vertices[ vertexIndex-1 ];
+      unsigned int uvIndex = uvIndices[v+i];
+      glm::vec2 uv = temp_uvs[ uvIndex-1 ];
+      unsigned int normalIndex = normalIndices[v+i];
+      glm::vec3 normal = temp_normals[ normalIndex-1 ];
+      geometry[i] = {{vertex.xyz}, {uv.xy}, {normal.xyz}});
+    }
   }
   return true;
 }
