@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-Wall -std=c++0x
 LDFLAGS=
-SOURCES=../src/main.cpp ../src/dllist.cpp ../src/universe.cpp ../src/object.cpp
+SOURCES=../src/main.cpp ../src/dllist.cpp ../src/universe.cpp ../src/object.cpp ../src/objloader.cpp
 OBJECTS=$(SOURCES: .cpp=.o)
 EXECUTABLE=../bin/main
 
