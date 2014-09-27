@@ -12,9 +12,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <assimp/color4.h>
 #include "include/universe.h"
 #include "include/object.h"
-#include "include/objloader.h"
 using namespace std;
 
 struct Vertex
@@ -43,17 +46,54 @@ Object::Object (Universe *d, std::string obName, float obMass, float obDensity, 
 
 bool Object::initialize(GLuint program, int width, int height)
 {
- 	Vertex geometry [32];
-	//GLuint vbo_geometry;
-	load_obj("board.obj", geometry);
-	vertices_size = vertices.size();
+	float *vertexArray;
+	float *normalArray;
+	float *uvArray;
+	int numVerts;
+	Assimp::Importer importer; 
+	const aiScene *scene = importer.ReadFile("board.obj", aiProcess_Triangulate);
+	aiMesh *mesh = scene->mMeshes[0];
+	numVerts = mesh->mNumFaces*3;
+	vertexArray = new float[mesh->mNumFaces*3*3];
+	normalArray = new float[mesh->mNumFaces*3*3];
+	uvArray = new float[mesh->mNumFaces*3*2];
+	for(unsigned int i=0;i<mesh->mNumFaces;i++)
+	{
+		const aiFace& face = mesh->mFaces[i];
+		for(int j=0;j<3;j++)
+		{
+			aiVector3D uv = mesh->mTextureCoords[0][face.mIndices[j]];
+			memcpy(uvArray,&uv,sizeof(float)*2);
+			uvArray+=2;
+			aiVector3D normal = mesh->mNormals[face.mIndices[j]];
+			memcpy(normalArray,&normal,sizeof(float)*3);
+			normalArray+=3;
+			aiVector3D pos = mesh->mVertices[face.mIndices[j]];
+			memcpy(vertexArray,&pos,sizeof(float)*3);
+			vertexArray+=3;
+		}
+	}
+	uvArray-=mesh->mNumFaces*3*2;
+	normalArray-=mesh->mNumFaces*3*3;
+	vertexArray-=mesh->mNumFaces*3*3;
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(3,GL_FLOAT,0,vertexArray);
+	glNormalPointer(GL_FLOAT,0,normalArray);
+	glClientActiveTexture(GL_TEXTURE0_ARB);
+	glTexCoordPointer(2,GL_FLOAT,0,uvArray);
+	glDrawArrays(GL_TRIANGLES,0,numVerts);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	// Create a Vertex Buffer object to store this vertex info on the GPU
 	glGenBuffers(1, &vbo_geometry);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*3 * sizeof(float), &vertexArray[0], GL_STATIC_DRAW);
 	glGenBuffers(1, &vbo_color);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_color);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*2 * sizeof(float), &uvArray[0], GL_STATIC_DRAW);
 	//Now we set the locations of the attributes and uniforms
 	loc_position = glGetAttribLocation(program,
 		const_cast<const char*>("v_position"));
@@ -88,6 +128,7 @@ bool Object::initialize(GLuint program, int width, int height)
 		float(width) / float(height), //Aspect Ratio, so Circles stay Circular
 		0.01f, //Distance to the near plane, normally a small value like this
 		100.0f); //Distance to the far plane, 
+	glDeleteBuffers(1, &vbo_geometry);
 	return true;
 }
 
