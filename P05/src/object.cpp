@@ -53,6 +53,8 @@ bool Object::initialize(GLuint program, int width, int height)
 	Assimp::Importer importer; 
 	const aiScene *scene = importer.ReadFile("board.obj", aiProcess_Triangulate);
 	aiMesh *mesh = scene->mMeshes[0];
+	vertices_size = mesh->mNumVertices;
+    cout << std::to_string(vertices_size) << std::endl;
 	numVerts = mesh->mNumFaces*3;
 	vertexArray = new float[mesh->mNumFaces*3*3];
 	normalArray = new float[mesh->mNumFaces*3*3];
@@ -71,6 +73,7 @@ bool Object::initialize(GLuint program, int width, int height)
 			aiVector3D pos = mesh->mVertices[face.mIndices[j]];
 			memcpy(vertexArray,&pos,sizeof(float)*3);
 			vertexArray+=3;
+			vertices_size++;
 		}
 	}
 	uvArray-=mesh->mNumFaces*3*2;

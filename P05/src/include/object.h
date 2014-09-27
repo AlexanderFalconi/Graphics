@@ -22,12 +22,6 @@ class Object
 		GLuint vbo_geometry;// VBO handle for our geometry
 		GLuint vbo_color;// VBO handle for our color
 
-		struct Vertex
-		{
-			GLfloat position[3];
-			GLfloat color[3];
-		};
-
 		struct Momentum
 		{
 			bool active;
