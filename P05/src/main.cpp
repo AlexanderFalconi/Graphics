@@ -20,6 +20,7 @@ using std::vector;
 int width = 640, height = 480;// Window size
 int leftClick = 0;//handle left clicking
 GLuint program;// The GLSL program handle
+GLuint vbo_geometry;// VBO handle for our geometry
 
 //--GLUT Callbacks
 void render();
@@ -141,7 +142,9 @@ bool initialize()
 
 void cleanUp()
 {
+	// Clean up, Clean up
 	glDeleteProgram(program);
+	glDeleteBuffers(1, &vbo_geometry);
 }
 
 float getDT()

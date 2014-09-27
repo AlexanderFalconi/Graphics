@@ -5,7 +5,7 @@ Programming Assignments by Alexander Falconi
 Special Instructions:
 Runs in Linux (Ubuntu). Makefile uses g++.
 
-EXTRA CREDIT:
+P04 EXTRA CREDIT:
 The board mesh has a material and color.
 
 Controls: 
@@ -16,3 +16,4 @@ A: reverse rotation.
 Right click: menu.
 Escape: quit.
 
+Notes to self: figure out deleteBuffers, change all namespace to using std::x

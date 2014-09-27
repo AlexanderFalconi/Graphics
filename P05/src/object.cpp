@@ -131,7 +131,6 @@ bool Object::initialize(GLuint program, int width, int height)
 		float(width) / float(height), //Aspect Ratio, so Circles stay Circular
 		0.01f, //Distance to the near plane, normally a small value like this
 		100.0f); //Distance to the far plane, 
-	glDeleteBuffers(1, &vbo_geometry);
 	return true;
 }
 
