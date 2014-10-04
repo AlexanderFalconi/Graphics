@@ -1,5 +1,7 @@
-varying vec3 color;
+uniform sampler2D diffuse;
+varying vec2 textCoord0;
+
 void main (void)
 {
-	gl_FragColor = vec4(color.rgb, 1.0);
+	gl_FragColor = texture2D(diffuse, textCoord0);
 }

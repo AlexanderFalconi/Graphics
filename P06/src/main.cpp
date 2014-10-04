@@ -3,19 +3,13 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <GL/glut.h> // doing otherwise causes compiler shouting
-#include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <chrono>
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
 #include "include/universe.h"
 #include "include/object.h"
 using std::string;
-using std::vector;
 
 int width = 640, height = 480;// Window size
 int leftClick = 0;//handle left clicking
@@ -119,6 +113,8 @@ bool initialize()
 	program = glCreateProgram();
 	glAttachShader(program, vertex_shader);
 	glAttachShader(program, fragment_shader);
+	glBindAttribLocation(program, 0, "v_position");
+	glBindAttribLocation(program, 1, "textCoord");
 	glLinkProgram(program);
 	//check if everything linked ok
 	glGetProgramiv(program, GL_LINK_STATUS, &shader_status);

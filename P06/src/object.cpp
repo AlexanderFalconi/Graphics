@@ -12,12 +12,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <assimp/color4.h>
 #include "include/universe.h"
 #include "include/object.h"
+#include "include/mesh.h"
+#include "include/texture.h"
+using std::cout;
+using std::endl;
 
 struct Vertex
 {
@@ -40,116 +40,31 @@ Object::Object (Universe *d, std::string obName, float obMass, float obDensity, 
 	name = obName;
 	mass = obMass;
 	density = obDensity;
+	mesh = new Mesh("board.obj");
+	texture = new Texture(GL_TEXTURE_2D, "board.png");
 	initialize(program, width, height);
 }
 
 bool Object::initialize(GLuint program, int width, int height)
 {
-	float *vertexArray;
-	float *normalArray;
-	float *uvArray;
-	int numVerts;
-	Assimp::Importer importer; 
-	const aiScene *scene = importer.ReadFile("board.obj", aiProcess_Triangulate);
-	aiMesh *mesh = scene->mMeshes[0];
-	vertices_size = mesh->mNumVertices;
-    cout << std::to_string(vertices_size) << std::endl;
-	numVerts = mesh->mNumFaces*3;
-	vertexArray = new float[mesh->mNumFaces*3*3];
-	normalArray = new float[mesh->mNumFaces*3*3];
-	uvArray = new float[mesh->mNumFaces*3*2];
-	for(unsigned int i=0;i<mesh->mNumFaces;i++)
-	{
-		const aiFace& face = mesh->mFaces[i];
-		for(int j=0;j<3;j++)
-		{
-			aiVector3D uv = mesh->mTextureCoords[0][face.mIndices[j]];
-			memcpy(uvArray,&uv,sizeof(float)*2);
-			uvArray+=2;
-			aiVector3D normal = mesh->mNormals[face.mIndices[j]];
-			memcpy(normalArray,&normal,sizeof(float)*3);
-			normalArray+=3;
-			aiVector3D pos = mesh->mVertices[face.mIndices[j]];
-			memcpy(vertexArray,&pos,sizeof(float)*3);
-			vertexArray+=3;
-			vertices_size++;
-		}
-	}
-	uvArray-=mesh->mNumFaces*3*2;
-	normalArray-=mesh->mNumFaces*3*3;
-	vertexArray-=mesh->mNumFaces*3*3;
-	//TRYING TO START TEXTURE STUFF HERE
-	m_fileName = "board.png";
-	try 
-	{
-		m_pImage = new Magick::Image(m_fileName);
-		m_pImage->write(&m_blob, "RGBA");
-	}
-	catch(Magick::Error& Error) 
-	{
-		std::cout << "Error loading texture '"<<m_fileName<<"': "<<Error.what()<<std::endl;
-		return false;
-	}
-	glGenTextures(1, &m_textureObj);
-	glBindTexture(m_textureTarget, m_textureObj);
-	glTexImage2D(m_textureTarget, 0, GL_RGBA, m_pImage->columns(), m_pImage->rows(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_blob.data());
-	glTexParameterf(m_textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(m_textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	void Texture::Bind(GLenum TextureUnit)
-	{
-		glActiveTexture(TextureUnit);
-		glBindTexture(m_textureTarget, m)textureObj);
-	}
-
-	//STILL GOING>..
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(3,GL_FLOAT,0,vertexArray);
-	glNormalPointer(GL_FLOAT,0,normalArray);
-	glClientActiveTexture(GL_TEXTURE0_ARB);
-	glTexCoordPointer(2,GL_FLOAT,0,uvArray);
-	glDrawArrays(GL_TRIANGLES,0,numVerts);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	// Create a Vertex Buffer object to store this vertex info on the GPU
-	glGenBuffers(1, &vbo_geometry);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-	glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*3 * sizeof(float), &vertexArray[0], GL_STATIC_DRAW);
-	glGenBuffers(1, &vbo_color);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_color);
-	glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*2 * sizeof(float), &uvArray[0], GL_STATIC_DRAW);
-	//Now we set the locations of the attributes and uniforms
-	loc_position = glGetAttribLocation(program,
-		const_cast<const char*>("v_position"));
+	int loc_position, loc_texture, loc_mvpmat;
+    glUseProgram(program);//enable the shader program
+	loc_position = glGetAttribLocation(program, const_cast<const char*>("v_position"));
 	if (loc_position == -1)
-	{
+	{//Set the locations of the attributes and uniforms
 		std::cerr << "[F] POSITION NOT FOUND" << std::endl;
 		return false;
 	}
-	loc_color = glGetAttribLocation(program,
-		const_cast<const char*>("v_color"));
-	if (loc_color == -1)
-	{
-		std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
-		return false;
-	}
-	loc_mvpmat = glGetUniformLocation(program,
-		const_cast<const char*>("mvpMatrix"));
+
+	loc_mvpmat = glGetUniformLocation(program, const_cast<const char*>("mvpMatrix"));
 	if (loc_mvpmat == -1)
-	{
+	{//Set the locations of the attributes and uniforms
 		std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
 		return false;
 	}
-	//--Init the view and projection matrices
-	//  if you will be having a moving camera the view matrix will need to more dynamic
-	//  ...Like you should update it before you render more dynamic 
-	//  for this project having them static will be fine
-	view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0), //Eye Position
-		glm::vec3(0.0, 0.0, 0.0), //Focus point
-		glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-
+	mesh->Load(loc_position, loc_mvpmat);//load mesh
+	texture->Load(loc_texture);//load the texture
+	view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 	projection = glm::perspective(45.0f, //the FoV typically 90 degrees is good which is what this is set to
 		float(width) / float(height), //Aspect Ratio, so Circles stay Circular
 		0.01f, //Distance to the near plane, normally a small value like this
@@ -157,72 +72,24 @@ bool Object::initialize(GLuint program, int width, int height)
 	return true;
 }
 
-float Object::getMass()
-{
-	return mass;
-}
-
-float Object::getDensity()
-{
-	return density;
-}
-
-glm::mat4 Object::getModel()
-{
-	return model;
-}
-
-Object *Object::getEnvironment()
-{
-	return environment;
-}
-
-vector<Object*> Object::getInventory()
-{
-	return inventory;
-}
-
 void Object::render(GLuint program, int width, int height)
 {
-	//premultiply the matrix for this example
-	mvp = projection * view * model;
-	//enable the shader program
-	glUseProgram(program);
-	//upload the matrix to the shader
-	glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
-	//set up the Vertex Buffer Object so it can be drawn
-	glEnableVertexAttribArray(loc_position);	
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-	//set pointers into the vbo for each of the attributes(position and color)
-	glVertexAttribPointer(loc_position,//location of attribute
-		3,//number of elements
-		GL_FLOAT,//type
-		GL_FALSE,//normalized?
-		0,//stride
-		(void*)0);//offset
-	glEnableVertexAttribArray(loc_color);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_color);
-	glVertexAttribPointer(loc_color,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		(void*)0);
-	glDrawArrays(GL_TRIANGLES, 0, vertices_size);//mode, starting index, count
-	//clean up
-	glDisableVertexAttribArray(loc_position);
-	glDisableVertexAttribArray(loc_color);
-	//Iterate through inventory
-	for(unsigned int i=0; i<inventory.size(); i++)
-		inventory[i]->render(program, width, height);
+    mvp = projection * view * model;//premultiply the matrix for this example
+    glUseProgram(program);//enable the shader program
+	texture->Bind(GL_TEXTURE0);//Bind the textures
+	mesh->Bind(mvp);//Bind the meshes
+	glDrawArrays(GL_TRIANGLES, 0, mesh->getNumVertices());//mode, starting index, count
+	texture->Unbind();
+	mesh->Unbind();
+	for(unsigned int i=0; i<inventory.size(); i++)//Iterate through inventory
+		inventory[i]->render(program, width, height);//Render each child
 }
 
 void Object::reshape(int width, int height)
 {
-	projection = glm::perspective(45.0f, float(width) / float(height), 0.01f, 100.0f);
-	//Iterate through inventory
-	for(unsigned int i=0; i<inventory.size(); i++)
-		inventory[i]->reshape(width, height);
+	projection = glm::perspective(45.0f, float(width) / float(height), 0.01f, 100.0f);//Reset projection
+	for(unsigned int i=0; i<inventory.size(); i++)//Iterate through inventory
+		inventory[i]->reshape(width, height);//Reshape each child
 }
 
 void Object::update(float dt)
@@ -261,4 +128,29 @@ void Object::release()
 {
 	//TODO: Need a search algorithm to remove
 	inventory.pop_back();
+}
+
+float Object::getMass()
+{
+	return mass;
+}
+
+float Object::getDensity()
+{
+	return density;
+}
+
+glm::mat4 Object::getModel()
+{
+	return model;
+}
+
+Object *Object::getEnvironment()
+{
+	return environment;
+}
+
+vector<Object*> Object::getInventory()
+{
+	return inventory;
 }
