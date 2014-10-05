@@ -8,15 +8,13 @@
 class Texture
 {
 public:
-    Texture(GLenum TextureTarget, const std::string& FileName);
-    bool Load(GLuint texture);
-    void Bind(GLenum TextureTarget);
+    Texture(const std::string& FileName);
+    void Bind();
     void Unbind();
 
 private:
     std::string m_fileName;
-    GLenum m_textureTarget;
-	GLuint vbo_texture, loc_texture;// VBO handle for our texture
+	GLuint m_texture;// VBO handle for our texture
     Magick::Image* m_pImage;
     Magick::Blob m_blob;
 };

@@ -13,6 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
 #include "include/universe.h"
+#include "include/shader.h"
 #include "include/object.h"
 #include "include/mesh.h"
 #include "include/texture.h"
@@ -40,30 +41,14 @@ Object::Object (Universe *d, std::string obName, float obMass, float obDensity, 
 	name = obName;
 	mass = obMass;
 	density = obDensity;
+	shader = new Shader("shader");
 	mesh = new Mesh("board.obj");
-	texture = new Texture(GL_TEXTURE_2D, "board.png");
+	texture = new Texture("board.png");
 	initialize(program, width, height);
 }
 
 bool Object::initialize(GLuint program, int width, int height)
 {
-	int loc_position, loc_texture, loc_mvpmat;
-    glUseProgram(program);//enable the shader program
-	loc_position = glGetAttribLocation(program, const_cast<const char*>("v_position"));
-	if (loc_position == -1)
-	{//Set the locations of the attributes and uniforms
-		std::cerr << "[F] POSITION NOT FOUND" << std::endl;
-		return false;
-	}
-
-	loc_mvpmat = glGetUniformLocation(program, const_cast<const char*>("mvpMatrix"));
-	if (loc_mvpmat == -1)
-	{//Set the locations of the attributes and uniforms
-		std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
-		return false;
-	}
-	mesh->Load(loc_position, loc_mvpmat);//load mesh
-	texture->Load(loc_texture);//load the texture
 	view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 	projection = glm::perspective(45.0f, //the FoV typically 90 degrees is good which is what this is set to
 		float(width) / float(height), //Aspect Ratio, so Circles stay Circular
@@ -75,12 +60,10 @@ bool Object::initialize(GLuint program, int width, int height)
 void Object::render(GLuint program, int width, int height)
 {
     mvp = projection * view * model;//premultiply the matrix for this example
-    glUseProgram(program);//enable the shader program
-	texture->Bind(GL_TEXTURE0);//Bind the textures
-	mesh->Bind(mvp);//Bind the meshes
-	glDrawArrays(GL_TRIANGLES, 0, mesh->getNumVertices());//mode, starting index, count
-	texture->Unbind();
-	mesh->Unbind();
+    shader->Bind();
+	texture->Bind();//Bind the textures
+    shader->Update(mvp);
+	mesh->Draw();
 	for(unsigned int i=0; i<inventory.size(); i++)//Iterate through inventory
 		inventory[i]->render(program, width, height);//Render each child
 }

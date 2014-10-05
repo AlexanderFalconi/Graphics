@@ -2,32 +2,29 @@
 #ifndef MESH_H
 #define	MESH_H
 
-#include <string>
-#include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <string>
+#include <vector>
 #include <ImageMagick-6/Magick++.h>
 
 class Mesh
 {
 	public:
-		//Vertex(const glm:vec3& pos, const glm::vec2& textCoord)
-		//{
-			//this->pos = pos;
-			//this->textCoord = textCoord;
-		//}
-	    Mesh(const std::string& FileName);
-	    bool Load(GLuint position, GLuint mvpmat);
-	    void Bind(glm::mat4 mvp);
-	    void Unbind();
-	    int getNumVertices();
+	    Mesh(const std::string& fileName);
 
+		void Draw();
+
+		virtual ~Mesh();
+	protected:
 	private:
-    	float *vertexArray, *normalArray, *uvArray;//Prep initial arrays
-	    std::string m_fileName;
-	    glm::vec3 pos;
-	    glm::vec2 textCoord;
-		int num_vertices, num_faces;
-		GLuint vbo_geometry, loc_position, loc_mvpmat;//modelviewprojection matrix in the shader
+		static const unsigned int NUM_BUFFERS = 4;
+		void operator=(const Mesh& mesh) {}
+		Mesh(const Mesh& mesh) {}
+
+		GLuint m_vertexArrayObject;
+		GLuint m_vertexArrayBuffers[NUM_BUFFERS];
+		unsigned int m_numIndices;
 };
 
 #endif	/* MESH_H */

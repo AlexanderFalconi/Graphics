@@ -6,6 +6,7 @@ using std::vector;
 
 class Mesh;
 class Texture;
+class Shader;
 
 class Object
 {
@@ -22,6 +23,7 @@ class Object
 		glm::mat4 mvp;//premultiplied modelviewprojection
 		Mesh* mesh;//mesh handler
 		Texture* texture;//texture handler
+		Shader* shader;//texture handler
 		struct Momentum
 		{
 			bool active;

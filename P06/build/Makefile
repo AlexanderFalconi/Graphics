@@ -2,7 +2,7 @@ CC=g++
 CFLAGS=-Wall -std=c++0x
 CXXFLAGS=
 LDFLAGS=`Magick++-config --cppflags --cxxflags --ldflags --libs`
-SOURCES=../src/main.cpp ../src/universe.cpp ../src/object.cpp ../src/mesh.cpp ../src/texture.cpp
+SOURCES=../src/main.cpp ../src/universe.cpp ../src/object.cpp ../src/shader.cpp ../src/mesh.cpp ../src/texture.cpp
 OBJECTS=$(SOURCES: .cpp=.o)
 EXECUTABLE=../bin/main
 

@@ -27,7 +27,6 @@ void specialInput(int key, int x, int y);
 
 //--Resource management
 bool initialize();
-void cleanUp();
 
 //--Random time things
 float getDT();
@@ -71,76 +70,19 @@ int main(int argc, char **argv)
 		t1 = std::chrono::high_resolution_clock::now();
 		glutMainLoop();
 	}
-	cleanUp();
 	return 0;
 }
 
 bool initialize()
 {
-	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER); 
-	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	//Shader Sources
-	std::ifstream file("shader.vert");
-	std::string vsContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	const char *vs = vsContent.c_str();
-	file.close();
-	file.open("shader.frag");
-	std::string fsContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	const char *fs = fsContent.c_str();
-	//compile the shaders
-	GLint shader_status;
-	// Vertex shader first
-	glShaderSource(vertex_shader, 1, &vs, NULL);
-	glCompileShader(vertex_shader);
-	//check the compile status
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &shader_status);
-	if (!shader_status)
-	{
-		std::cerr << "[F] FAILED TO COMPILE VERTEX SHADER!" << std::endl;
-		return false;
-	}
-	// Now the Fragment shader
-	glShaderSource(fragment_shader, 1, &fs, NULL);
-	glCompileShader(fragment_shader);
-	//check the compile status
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &shader_status);
-	if (!shader_status)
-	{
-		std::cerr << "[F] FAILED TO COMPILE FRAGMENT SHADER!" << std::endl;
-		return false;
-	}
-	//Now we link the 2 shader objects into a program
-	program = glCreateProgram();
-	glAttachShader(program, vertex_shader);
-	glAttachShader(program, fragment_shader);
-	glBindAttribLocation(program, 0, "v_position");
-	glBindAttribLocation(program, 1, "textCoord");
-	glLinkProgram(program);
-	//check if everything linked ok
-	glGetProgramiv(program, GL_LINK_STATUS, &shader_status);
-	if (!shader_status)
-	{
-		std::cerr << "[F] THE SHADER PROGRAM FAILED TO LINK" << std::endl;
-		return false;
-	}
-	//Start loading objects
 	engine = new Universe();
 	Object* center = new Object(engine, "Planet", 0.0, 0.0, program, width, height);
 	engine->setCenter(center);
 	Object* moon = new Object(engine, "Moon", 0.0, 0.0, program, width, height);
 	moon->eventMove(center);
-	//enable depth testing
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	//and its done
+	//glBindAttribLocation(program, 0, "v_position");
+	//glBindAttribLocation(program, 1, "textCoord");
 	return true;
-}
-
-void cleanUp()
-{
-	// Clean up, Clean up
-	glDeleteProgram(program);
-	glDeleteBuffers(1, &vbo_geometry);
 }
 
 float getDT()

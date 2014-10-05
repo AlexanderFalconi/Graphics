@@ -12,20 +12,12 @@
 #include <ImageMagick-6/Magick++.h>
 #include "include/mesh.h"
 
-Mesh::Mesh(const std::string& FileName)
+Mesh::Mesh(const std::string& fileName)
 {
-    m_fileName      = FileName;
-}
-
-bool Mesh::Load(GLuint position, GLuint mvpmat)
-{
-    loc_position = position;
-    loc_mvpmat = mvpmat;
+    float *vertexArray, *normalArray, *uvArray;//Prep initial arrays
     Assimp::Importer importer;//Prep importer object
-    const aiScene *scene = importer.ReadFile(m_fileName, aiProcess_Triangulate);//Import object
+    const aiScene *scene = importer.ReadFile(fileName, aiProcess_Triangulate);//Import object
     aiMesh *mesh = scene->mMeshes[0];//Get meshes from importer object
-    num_vertices = mesh->mNumVertices;//Set number of vertices
-    num_faces = mesh->mNumFaces;
     vertexArray = new float[mesh->mNumFaces*3*3];//Dynamically create vertices array
     normalArray = new float[mesh->mNumFaces*3*3];//Dynamically create normals array
     uvArray = new float[mesh->mNumFaces*3*2];//Dynamically create uv array
@@ -48,40 +40,31 @@ bool Mesh::Load(GLuint position, GLuint mvpmat)
     uvArray-=mesh->mNumFaces*3*2;
     normalArray-=mesh->mNumFaces*3*3;
     vertexArray-=mesh->mNumFaces*3*3;
-    return true;
+    glGenBuffers(3, m_vertexArrayBuffers);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[0]);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*3, &vertexArray[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[1]);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*2, &uvArray[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[2]);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*3, &normalArray[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindVertexArray(0);      
 }
 
-void Mesh::Bind(glm::mat4 mvp)
+void Mesh::Draw()
 {
-    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));//upload the matrix to the shader
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glVertexPointer(3,GL_FLOAT,0,vertexArray);
-    glNormalPointer(GL_FLOAT,0,normalArray);
-    glClientActiveTexture(GL_TEXTURE0_ARB);
-    glTexCoordPointer(2,GL_FLOAT,0,uvArray);
-    glDrawArrays(GL_TRIANGLES,0,num_vertices);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glEnableVertexAttribArray(0);    
-    glVertexAttribPointer(0,//location of attribute
-        3,//number of elements
-        GL_FLOAT,//type
-        GL_FALSE,//normalized?
-        0,//stride
-        (void*)0);//offset
-
+    glBindVertexArray(m_vertexArrayObject);
+    glDrawElementsBaseVertex(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, 0, 0);
+    glBindVertexArray(0);
 }
 
-int Mesh::getNumVertices()
+Mesh::~Mesh()
 {
-    return num_vertices;
-}
-
-void Mesh::Unbind()
-{
-    glDisableVertexAttribArray(0);//clean up
+    glDeleteBuffers(3, m_vertexArrayBuffers);
+    glDeleteVertexArrays(1, &m_vertexArrayObject);
 }
