@@ -26,7 +26,7 @@ void Texture::Bind()
 {
     glBindTexture(GL_TEXTURE_2D, m_texture);
 }
-
+//change this to destrcutor
 void Texture::Unbind()
 {
     glDeleteTextures(1, &m_texture);//clean up

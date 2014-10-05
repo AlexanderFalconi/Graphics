@@ -50,11 +50,9 @@ Mesh::Mesh(const std::string& fileName)
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[POSITION_VB]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_numIndices*3*3, &vertexArray[0], GL_STATIC_DRAW);
-
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[TEXCOORD_VB]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_numIndices*3*2, &uvArray[0], GL_STATIC_DRAW);
-
     glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[NORMAL_VB]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_numIndices*3*3, &normalArray[0], GL_STATIC_DRAW);

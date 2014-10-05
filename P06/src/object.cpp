@@ -54,7 +54,6 @@ void Object::render()
 	texture->Bind();//Bind the textures
     shader->Update(mvp);
 	mesh->Draw();
-	texture->Unbind();
 	for(unsigned int i=0; i<inventory.size(); i++)//Iterate through inventory
 		inventory[i]->render();//Render each child
 }
