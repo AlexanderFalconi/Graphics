@@ -18,9 +18,7 @@ Shader::Shader(const std::string& fileName)
 	glValidateProgram(m_program);
 	CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
 
-	m_uniforms[0] = glGetUniformLocation(m_program, "MVP");
-	m_uniforms[1] = glGetUniformLocation(m_program, "Normal");
-	m_uniforms[2] = glGetUniformLocation(m_program, "lightDirection");
+	m_uniforms[0] = glGetUniformLocation(m_program, "mvp");
 }
 
 Shader::~Shader()
@@ -39,14 +37,17 @@ void Shader::Bind()
 	glUseProgram(m_program);
 }
 
+void Shader::Update(glm::mat4 mvp)
+{
+    glUniformMatrix4fv(m_uniforms[0], 1, GL_FALSE, &mvp[0][0]);
+}
+
 std::string Shader::LoadShader(const std::string& fileName)
 {
     std::ifstream file;
     file.open((fileName).c_str());
-
     std::string output;
     std::string line;
-
     if(file.is_open())
     {
         while(file.good())
@@ -56,10 +57,7 @@ std::string Shader::LoadShader(const std::string& fileName)
         }
     }
     else
-    {
 		std::cerr << "Unable to load shader: " << fileName << std::endl;
-    }
-
     return output;
 }
 
@@ -102,13 +100,4 @@ GLuint Shader::CreateShader(const std::string& text, unsigned int type)
     CheckShaderError(shader, GL_COMPILE_STATUS, false, "Error compiling shader!");
 
     return shader;
-}
-
-void Shader::Update(glm::mat4 mvp)
-{
-    //glm::mat4 Normal = transform.GetModel();
-
-    glUniformMatrix4fv(m_uniforms[0], 1, GL_FALSE, &mvp[0][0]);
-    //glUniformMatrix4fv(m_uniforms[1], 1, GL_FALSE, &Normal[0][0]);
-    //glUniform3f(m_uniforms[2], 0.0f, 0.0f, 1.0f);
 }

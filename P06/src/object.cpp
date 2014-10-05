@@ -12,60 +12,54 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+#include "include/object.h"
 #include "include/universe.h"
 #include "include/shader.h"
-#include "include/object.h"
 #include "include/mesh.h"
 #include "include/texture.h"
 using std::cout;
 using std::endl;
 
-struct Vertex
-{
-    GLfloat position[3];
-    GLfloat color[2];
-    GLfloat normals[3];
-};
-
-Object::Object(Universe* d, GLint program, int width, int height)
+Object::Object(Universe* d, Shader *shade, int width, int height)
 {
 	daemon = d;
 	environment = nullptr;
-	initialize(program, width, height);
+	shader = shade;
+	mesh = new Mesh("board.obj");
+	texture = new Texture("board.png");
+	initialize(width, height);
 }
 
-Object::Object (Universe *d, std::string obName, float obMass, float obDensity, GLint program, int width, int height)
+Object::Object (Universe *d, Shader *shade, std::string obName, float obMass, float obDensity, int width, int height)
 {
 	daemon = d;
 	environment = nullptr;
+	shader = shade;
 	name = obName;
 	mass = obMass;
 	density = obDensity;
-	shader = new Shader("shader");
 	mesh = new Mesh("board.obj");
 	texture = new Texture("board.png");
-	initialize(program, width, height);
+	initialize(width, height);
 }
 
-bool Object::initialize(GLuint program, int width, int height)
+bool Object::initialize(int width, int height)
 {
 	view = glm::lookAt(glm::vec3(0.0, 8.0, -16.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-	projection = glm::perspective(45.0f, //the FoV typically 90 degrees is good which is what this is set to
-		float(width) / float(height), //Aspect Ratio, so Circles stay Circular
-		0.01f, //Distance to the near plane, normally a small value like this
-		100.0f); //Distance to the far plane, 
+	projection = glm::perspective(45.0f, float(width) / float(height), 0.01f, 100.0f); 
 	return true;
 }
 
-void Object::render(GLuint program, int width, int height)
+void Object::render()
 {
-    mvp = projection * view * model;//premultiply the matrix for this example
+    mvp = projection * view * model;//premultiply the matrix
+    cout << "Entered ob" << endl;
     shader->Bind();
 	texture->Bind();//Bind the textures
     shader->Update(mvp);
 	mesh->Draw();
 	for(unsigned int i=0; i<inventory.size(); i++)//Iterate through inventory
-		inventory[i]->render(program, width, height);//Render each child
+		inventory[i]->render();//Render each child
 }
 
 void Object::reshape(int width, int height)

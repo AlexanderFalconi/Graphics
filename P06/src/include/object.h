@@ -7,6 +7,7 @@ using std::vector;
 class Mesh;
 class Texture;
 class Shader;
+class Universe;
 
 class Object
 {
@@ -42,17 +43,17 @@ class Object
 	public:
 		Momentum rotation;
 		Momentum orbit;
-		Object (Universe* d, GLint program, int width, int height);
-		Object (Universe* d, std::string obName, float obMass, float obDensity, GLint program, int width, int height);
+		Object (Universe* d, Shader *shade, int width, int height);
+		Object (Universe* d, Shader *shade, std::string obName, float obMass, float obDensity, int width, int height);
 		float getMass();
 		float getDensity();
 		glm::mat4 getModel();
 		Object* getEnvironment();
 		vector<Object*> getInventory();
-		void render(GLuint program, int width, int height);
+		void render();
 		void update(float dt);
 		void reshape(int width, int height);
-		bool initialize(GLuint program, int width, int height);
+		bool initialize(int width, int height);
 		void receive(Object *ob);
 		void release();
 		void eventMove(Object *ob);

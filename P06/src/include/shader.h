@@ -3,6 +3,7 @@
 
 #include <string>
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 
 class Shader
 {
@@ -15,7 +16,7 @@ class Shader
 	protected:
 	private:
 		static const unsigned int NUM_SHADERS = 2;
-		static const unsigned int NUM_UNIFORMS = 3;
+		static const unsigned int NUM_UNIFORMS = 1;
 		void operator=(const Shader& shader) {}
 		Shader(const Shader& shader) {}
 

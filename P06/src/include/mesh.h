@@ -8,6 +8,14 @@
 #include <vector>
 #include <ImageMagick-6/Magick++.h>
 
+enum MeshBufferPositions
+{
+	POSITION_VB,
+	TEXCOORD_VB,
+	NORMAL_VB,
+	INDEX_VB
+};
+
 class Mesh
 {
 	public:
@@ -18,7 +26,7 @@ class Mesh
 		virtual ~Mesh();
 	protected:
 	private:
-		static const unsigned int NUM_BUFFERS = 4;
+		static const unsigned int NUM_BUFFERS = 3;
 		void operator=(const Mesh& mesh) {}
 		Mesh(const Mesh& mesh) {}
 

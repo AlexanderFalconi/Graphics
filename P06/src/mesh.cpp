@@ -21,6 +21,7 @@ Mesh::Mesh(const std::string& fileName)
     vertexArray = new float[mesh->mNumFaces*3*3];//Dynamically create vertices array
     normalArray = new float[mesh->mNumFaces*3*3];//Dynamically create normals array
     uvArray = new float[mesh->mNumFaces*3*2];//Dynamically create uv array
+    m_numIndices = mesh->mNumFaces;
     for(unsigned int i=0;i<mesh->mNumFaces;i++)
     {//For each face in the mesh
         const aiFace& face = mesh->mFaces[i];//Get face object
@@ -40,19 +41,22 @@ Mesh::Mesh(const std::string& fileName)
     uvArray-=mesh->mNumFaces*3*2;
     normalArray-=mesh->mNumFaces*3*3;
     vertexArray-=mesh->mNumFaces*3*3;
-    glGenBuffers(3, m_vertexArrayBuffers);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*3, &vertexArray[0], GL_STATIC_DRAW);
+    glGenVertexArrays(1, &m_vertexArrayObject);
+    glBindVertexArray(m_vertexArrayObject);
+    glGenBuffers(NUM_BUFFERS, m_vertexArrayBuffers);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[POSITION_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_numIndices*3*3, &vertexArray[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*2, &uvArray[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[TEXCOORD_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_numIndices*3*2, &uvArray[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[2]);
-    glBufferData(GL_ARRAY_BUFFER, mesh->mNumFaces*3*3, &normalArray[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexArrayBuffers[NORMAL_VB]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*m_numIndices*3*3, &normalArray[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    //INDICES NEEDED?
     glBindVertexArray(0);      
 }
 
@@ -65,6 +69,6 @@ void Mesh::Draw()
 
 Mesh::~Mesh()
 {
-    glDeleteBuffers(3, m_vertexArrayBuffers);
+    glDeleteBuffers(NUM_BUFFERS, m_vertexArrayBuffers);
     glDeleteVertexArrays(1, &m_vertexArrayObject);
 }
