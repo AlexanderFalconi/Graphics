@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
 #include "include/shader.h"
 
 Shader::Shader(const std::string& fileName)
@@ -18,7 +20,7 @@ Shader::Shader(const std::string& fileName)
 	glValidateProgram(m_program);
 	CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
 
-	m_uniforms[0] = glGetUniformLocation(m_program, "mvp");
+	m_uniforms[0] = glGetUniformLocation(m_program, "MVP");
 }
 
 Shader::~Shader()
@@ -39,7 +41,7 @@ void Shader::Bind()
 
 void Shader::Update(glm::mat4 mvp)
 {
-    glUniformMatrix4fv(m_uniforms[0], 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(m_uniforms[0], 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
 std::string Shader::LoadShader(const std::string& fileName)

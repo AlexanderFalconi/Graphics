@@ -17,9 +17,6 @@
 #include "include/shader.h"
 #include "include/mesh.h"
 #include "include/texture.h"
-using std::cout;
-using std::endl;
-
 Object::Object(Universe* d, Shader *shade, int width, int height)
 {
 	daemon = d;
@@ -53,11 +50,11 @@ bool Object::initialize(int width, int height)
 void Object::render()
 {
     mvp = projection * view * model;//premultiply the matrix
-    cout << "Entered ob" << endl;
     shader->Bind();
 	texture->Bind();//Bind the textures
     shader->Update(mvp);
 	mesh->Draw();
+	texture->Unbind();
 	for(unsigned int i=0; i<inventory.size(); i++)//Iterate through inventory
 		inventory[i]->render();//Render each child
 }
