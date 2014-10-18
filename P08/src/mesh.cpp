@@ -19,7 +19,7 @@ Mesh::Mesh(const std::string& fileName)
 {
     float *vertexArray, *normalArray, *uvArray;//Prep initial arrays
     Assimp::Importer importer;//Prep importer object
-    const aiScene *scene = importer.ReadFile(fileName, aiProcess_Triangulate);//Import object
+    const aiScene *scene = importer.ReadFile("meshes/"+fileName, aiProcess_Triangulate);//Import object
     aiMesh *mesh = scene->mMeshes[0];//Get meshes from importer object
     vertexArray = new float[mesh->mNumFaces*3*3];//Dynamically create vertices array
     normalArray = new float[mesh->mNumFaces*3*3];//Dynamically create normals array

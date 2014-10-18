@@ -22,8 +22,8 @@ Object::Object(Universe* d, Shader *shade, int width, int height)
 	daemon = d;
 	environment = nullptr;
 	shader = shade;
-	mesh = new Mesh("board.obj");
-	texture = new Texture("board.png");
+	mesh = new Mesh("StaticTable.obj");
+	texture = new Texture("StaticTable.png");
 	initialize(width, height);
 }
 
@@ -35,8 +35,8 @@ Object::Object (Universe *d, Shader *shade, std::string obName, float obMass, fl
 	name = obName;
 	mass = obMass;
 	density = obDensity;
-	mesh = new Mesh("board.obj");
-	texture = new Texture("board.png");
+	mesh = new Mesh(obName+".obj");
+	texture = new Texture(obName+".png");
 	initialize(width, height);
 }
 

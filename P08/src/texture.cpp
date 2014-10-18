@@ -4,7 +4,7 @@
 
 Texture::Texture(const std::string& FileName)
 {
-    m_fileName      = FileName;
+    m_fileName      = "textures/"+FileName;
     m_pImage        = NULL;
     try {
         m_pImage = new Magick::Image(m_fileName);

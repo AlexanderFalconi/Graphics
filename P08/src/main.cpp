@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);// Initialize glut
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(640, 480);
-	glutCreateWindow("CS480 Graphics");// Name and create the Window
+	glutCreateWindow("Bullet Intro");// Name and create the Window
 	GLenum status = glewInit();// Initialize GLEW to prepare work with shaders
 	if (status != GLEW_OK)
 	{
@@ -124,12 +124,12 @@ void mainMenu(int value)
 
 bool initialize()
 {
-	Shader* shader = new Shader("shader");
+	Shader* shader = new Shader("shaders/shader");
 	engine = new Universe();
-	Object* center = new Object(engine, shader, "Planet", 0.0, 0.0, width, height);
+	Object* center = new Object(engine, shader, "StaticTable", 0.0, 0.0, width, height);
 	engine->setCenter(center);
-	Object* moon = new Object(engine, shader, "Moon", 0.0, 0.0, width, height);
-	moon->eventMove(center);
+	Object* top = new Object(engine, shader, "StaticCube", 0.0, 0.0, width, height);
+	top->eventMove(center);
 	return true;
 }
 
