@@ -12,6 +12,7 @@
 #include "include/object.h"
 using std::string;
 
+//openGL globals
 int width = 640, height = 480;// Window size
 int leftClick = 0;//handle left clicking
 
@@ -63,6 +64,12 @@ int main(int argc, char **argv)
 		t1 = std::chrono::high_resolution_clock::now();
 		glutMainLoop();
 	}
+	delete engine;
+	delete dispatcher;
+	delete collisionConfig;
+	delete solver;
+	delete world;
+	delete broadphase;
 	return 0;
 }
 
@@ -125,10 +132,14 @@ void mainMenu(int value)
 bool initialize()
 {
 	Shader* shader = new Shader("shaders/shader");
-	engine = new Universe();
+	engine = new Universe();//Also initializes bullet
 	Object* center = new Object(engine, shader, "StaticTable", 0.0, 0.0, width, height);
 	engine->setCenter(center);
 	Object* top = new Object(engine, shader, "StaticCube", 0.0, 0.0, width, height);
+	top->eventMove(center);
+	top = new Object(engine, shader, "Cylinder", 0.0, 0.0, width, height);
+	top->eventMove(center);
+	top = new Object(engine, shader, "Sphere", 0.0, 0.0, width, height);
 	top->eventMove(center);
 	return true;
 }
@@ -154,6 +165,7 @@ void render()
 void update()
 {
 	float dt = getDT();// if you have anything moving, use dt.
+	engine->world->stepSimulation(dt);//Trigger physics math
 	engine->getCenter()->update(dt);
 	glutPostRedisplay();//call the display callback
 }
