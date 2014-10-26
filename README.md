@@ -1,14 +1,6 @@
 CS480 Graphics Class
 ==================
-Programming Assignments by Alexander Falconi
 
-Special Instructions:
-Runs in Linux (Ubuntu). Makefile uses g++.
+Code for Air Hockey pt 1 (Bullet) is here: https://github.com/snorlon/cs480Brown/tree/master/Assignment09
 
-Controls: 
-Left arrow: rotate left.
-Right arrow: rotate right.
-Left click: reverse rotation.
-A: reverse rotation.
-Right click: menu.
-Escape: quit.
+Group: Molly Headland, Chad Brown, Alex Falconi
