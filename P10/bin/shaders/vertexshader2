@@ -1,0 +1,10 @@
+#version 130
+
+in vec2 s_tex;
+in vec3 s_position;
+
+void main()
+{
+    gl_Position = vec4(s_position, 1.0);
+    gl_TexCoord[0].st = s_tex;
+}

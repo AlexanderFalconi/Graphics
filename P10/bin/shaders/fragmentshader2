@@ -1,0 +1,9 @@
+#version 130
+
+uniform sampler2D renderedTexture;
+
+void main()
+{     
+    vec4 color = texture( renderedTexture, gl_TexCoord[0].st );
+    gl_FragColor = color;
+}
