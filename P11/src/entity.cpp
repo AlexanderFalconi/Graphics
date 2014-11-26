@@ -52,6 +52,7 @@ entity::entity(config* nConfig) //load a model from a file
     orientation.x = 0.0;
     orientation.y = 0.0;
     orientation.z = 0.0;
+    orientation.w = 1.0;
 }
 
 entity::~entity()
@@ -103,7 +104,7 @@ void entity::init()
         loc_mvpmat[i] = glGetUniformLocation(activeProgram, "mvpMatrix");
 
         //fuck i hope this doesn't break
-        for(int j=0; j<5; j++)
+        for(int j=0; j<10; j++)
         {
             loc_lightPosition[i][j] = glGetUniformLocation(activeProgram, const_cast<const char*>(("lights["+to_string(j)+"].position").c_str()));
             loc_lightAmbient[i][j] = glGetUniformLocation(activeProgram, const_cast<const char*>(("lights["+to_string(j)+"].ambient").c_str()));

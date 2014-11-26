@@ -108,33 +108,19 @@ void renderer::tick()
     //BRING IN THE DYNAMICS
     //create our text stuffs
     //sprites.addSprite(simConfig, 300, 200, 85, 232, "testtrainer.png", false);
-    sprites.generateText(simConfig, "High Scores", 0.4, 45, 215);
+    sprites.generateText(simConfig, "Scores", 0.4, 5, 215);
     sprites.generateText(simConfig, to_string(int(ceil(simConfig->gameData.time))), 0.5, 612, 730);
     sprites.generateText(simConfig, "FPS "+to_string(simConfig->lastFPS), 0.4, 25, 740);
     sprites.generateText(simConfig, "Version 1.0.0", 0.4, 985, 740);
 
     //scoreboard stuff
-    sprites.generateText(simConfig, simConfig->gameData.currentGame.p1Name, 0.5, 330, 740);
-    sprites.generateText(simConfig, ""+to_string(simConfig->gameData.currentGame.score1), 0.5, 525, 740);
-    sprites.generateText(simConfig, simConfig->gameData.currentGame.p2Name, 0.5, 770, 740);
-    sprites.generateText(simConfig, ""+to_string(simConfig->gameData.currentGame.score2), 0.5, 700, 740);
-
-    //ai flags
-    if(simConfig->gameData.ai1Enabled)
-        sprites.generateText(simConfig, "AI ENABLED", 0.3, 370, 700,-2);
-    if(simConfig->gameData.ai2Enabled)
-        sprites.generateText(simConfig, "AI ENABLED", 0.3, 740, 700,-2);
+    sprites.generateText(simConfig, ""+to_string(int(floor(simConfig->gameData.currentGame.currScore))), 0.5, 425, 740);
 
     //render GAMEOVER if game is not active
-    if(!simConfig->gameData.gameActive)
-        sprites.generateText(simConfig, "GAME OVER!", 1.0, 410, 440, 30);
-
-    //render our theme name
-    if(simConfig->gameData.currentTheme!=NULL)
-    {
-        sprites.generateText(simConfig, "Theme: ", 0.6, 365, 138,7);
-        sprites.generateText(simConfig, simConfig->gameData.currentTheme->themeName, 0.6, 600, 138,7);//draw theme name
-    }
+    if(simConfig->gameData.gameState==2)
+        sprites.generateText(simConfig, "YOU WIN!", 1.0, 410, 440, 30);
+    else if(simConfig->gameData.gameState==1)
+        sprites.generateText(simConfig, "YOU LOSE!", 1.0, 410, 440, 30);
 
     //draw highscores
     for(int i=0; i<10; i++)
@@ -142,13 +128,9 @@ void renderer::tick()
         if(simConfig->gameData.highscores[i]!=NULL)
         {
             score* currentScore = simConfig->gameData.highscores[i];//for readability
-            sprites.generateText(simConfig, currentScore->bestName(), 0.3, 45, 180-20*i,-2);//draw name
-            sprites.generateText(simConfig, to_string(currentScore->bestScore()), 0.3, 225, 180-20*i,-2);//draw score
+            sprites.generateText(simConfig, to_string(int(floor(currentScore->currScore))), 0.3, 45, 180-20*i,-2);//draw score
         }
     }
-
-    //render theme images
-    sprites.addSprite(simConfig, 316, 0, 648, 131, "interface/themes/"+simConfig->gameData.currentTheme->themeName+".png", false);
 }
 
 bool renderer::initialize()

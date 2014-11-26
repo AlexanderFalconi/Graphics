@@ -52,6 +52,8 @@ void entityPhysics::init(entity* np)
         {
             //ez sphere creation
             shape = new btSphereShape(parent->size.x);
+
+            shape->setMargin(0.01f);
         }
         else if(parent->shape == "Custom")
         {
@@ -82,18 +84,36 @@ void entityPhysics::init(entity* np)
             shape = new btBoxShape(btVector3(0.0001,0.0001,0.0001));
         }
 
-        objMotion = new btDefaultMotionState(btTransform(btQuaternion(parent->orientation.x, parent->orientation.y, parent->orientation.z, 1), btVector3(parent->absolutePosition.x, 
-            parent->absolutePosition.y, parent->absolutePosition.z)));
+        //lets roll this world
+        btQuaternion rotation = btQuaternion();
+        btVector3 up(0, 1, 0);
+        btVector3 lookat = quatRotate(rotation, btVector3(0, 0, 1));
+        btVector3 forward = btVector3(lookat.getX(), 0, lookat.getZ()).normalize();
+        btVector3 side = btCross(up, forward);
+
+        rotation = btQuaternion(up,      parent->orientation.y) * rotation;
+        rotation = btQuaternion(side,    parent->orientation.x+3.14) * rotation;
+        rotation = btQuaternion(forward, parent->orientation.z) * rotation;
+
+        if(parent->shape == "Plane" || parent->shape == "Sphere")
+            objMotion = new btDefaultMotionState(btTransform(btQuaternion(0,0,0,1), btVector3(parent->absolutePosition.x, 
+                parent->absolutePosition.y, parent->absolutePosition.z)));
+        else
+            objMotion = new btDefaultMotionState(btTransform(rotation, btVector3(parent->absolutePosition.x, 
+               parent->absolutePosition.y, parent->absolutePosition.z)));
+
         btVector3 fallInertia(0, 0, 0);
         shape->calculateLocalInertia(mass, fallInertia);
 
         btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, objMotion, shape, fallInertia);
 
         //set the friction
-        fallRigidBodyCI.m_friction = 0.1;
+        fallRigidBodyCI.m_friction = 1.0;
 
         objRB = new btRigidBody(fallRigidBodyCI);
         //simConfig->physicsEnvironment->dynamicsWorld->addRigidBody(objRB);
+
+        objRB->setActivationState(DISABLE_DEACTIVATION);
 
         //create types and add them if necessary
         if(objType == " Static")
@@ -104,12 +124,12 @@ void entityPhysics::init(entity* np)
         {
             simConfig->physicsEnvironment->dynamicsWorld->addRigidBody(objRB, COL_OBJ, objCollidesWith);
         }
-	else if(objType == "Kinematic")
-	{
-	    objRB->setCollisionFlags(objRB->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-	    objRB->setActivationState(DISABLE_DEACTIVATION);
-	    simConfig->physicsEnvironment->dynamicsWorld->addRigidBody(objRB);
-	}
+	    else if(objType == "Kinematic")
+	    {
+	        objRB->setCollisionFlags(objRB->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	        objRB->setActivationState(DISABLE_DEACTIVATION);
+	        simConfig->physicsEnvironment->dynamicsWorld->addRigidBody(objRB);
+	    }
         else
         {
             simConfig->physicsEnvironment->dynamicsWorld->addRigidBody(objRB);

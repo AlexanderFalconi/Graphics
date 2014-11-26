@@ -10,18 +10,10 @@ class entity;
 class score
 {
     public:
-        bool player1Player;
-        string p1Name;
-        bool player2Player;
-        string p2Name;
-
-        int score1;
-        int score2;
+        double currScore;
 
         score();
         score(score* s);
-        string bestName();
-        int bestScore();
 
     private:
 };
@@ -45,41 +37,34 @@ class game
         score* highscores[10];
         score currentGame;
 
-        theme* currentTheme;
-        theme* themes;
+        theme currentTheme;
 
         config* simConfig;
 
+        int mode;
+
         //store game-specific materials via the game class
-        entity* puck;
-        entity* bat1;
-        entity* bat2;
+        entity* ball1;
+        entity* ball2;
+        entity* bat;
         entity* table;
 
         double time;
 
-        int themeCount;
-
-        bool gameActive;
-
-        bool ai1Enabled;
-        bool ai2Enabled;
+        int gameState;
 
         game();
         ~game();
-        void addTheme(string nname, string apath, string p1, string p2);
-        void switchTheme(int themenum);
         void addScore(score* s);
         void resetScore();
         void init();//for initing the game-specific components
         void tick(double dt);
         void render();
-        void moveBat(int bat, double xAmount, double yAmount, bool aiControlled);
-        void startGame();
-        void enableAI(int person);
+        void moveBat(double xAmount, double yAmount);
+        void startGame(int nmode = 0);
 
         //game-specific functions
-        void resetPuck();
+        void resetBall();
     private:
 };
 
