@@ -1,6 +1,6 @@
 # Linux
 CC=g++
-LIBS= -lglut -lGLEW -lGL -lfreeimageplus -lassimp -I/usr/include/bullet  -lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath
+LIBS= -lglut -lGLEW -lGL -lfreeimageplus -lassimp -I"../bin/sound/include" -I/usr/local/include/bullet  -lBulletSoftBody -lBulletDynamics -lBulletCollision -lLinearMath
 
 # For Macs uncomment the next line and comment out the previous one
 #CC=clang++
@@ -8,7 +8,7 @@ LIBS= -lglut -lGLEW -lGL -lfreeimageplus -lassimp -I/usr/include/bullet  -lBulle
 # Assuming you want to use a recent compiler
 
 # Compiler flags
-CXXFLAGS= -g -Wall -Wextra -std=c++0x $(DEFS)
+CXXFLAGS= -g -Wall -Wextra -std=c++0x -pthread $(DEFS)
 
 
 OUTPUT = ../bin/Project
@@ -43,7 +43,7 @@ DEPTHRENDERERH = ../src/depthRenderer.h
 all: main
 
 main: main.o config.o entity.o entitymanager.o shaderloader.o camera.o renderer.o entityphysics.o physics.o light.o sprite.o game.o flatRenderer.o depthRenderer.o
-	$(CC) $(CXXFLAGS) -o $(OUTPUT) main.o config.o entity.o entitymanager.o shaderloader.o camera.o renderer.o entityphysics.o physics.o light.o sprite.o game.o flatRenderer.o depthRenderer.o $(LIBS)
+	$(CC) $(CXXFLAGS) -o $(OUTPUT) main.o config.o entity.o entitymanager.o shaderloader.o camera.o renderer.o entityphysics.o physics.o light.o sprite.o game.o flatRenderer.o depthRenderer.o $(LIBS) ../bin/sound/bin/linux-gcc-64/libIrrKlang.so
 
 main.o: $(MAIN) $(CONFIGH) $(SHADERLOADERH) $(RENDERERH) $(ENTITYH) $(ENTITYMANAGERH)
 	$(CC) $(CXXFLAGS) -c $(MAIN) $(LIBS)
