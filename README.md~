@@ -1,6 +1,12 @@
 CS480 Graphics Class
 ==================
 
-Code for Labyrinth is here: https://github.com/snorlon/cs480Brown/tree/master/Assignment11
+Final Project
+
+Additions by sound: 
+
+Directory created at /bin/sound
+Main.cpp modified: 1 global created (soundEngine), initialized soundEngine at top of main, and added a clean in cleanUp() function.
+Makefile modified
 
 Group: Molly Headland, Chad Brown, Alex Falconi
