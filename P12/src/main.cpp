@@ -2,10 +2,11 @@
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
 #include <chrono>
-
+#include <irrKlang.h>// At the beginning, we need to include the irrKlang headers (irrKlang.h) and
 #include <string.h>  //used for string comparisons for file loading
 #include <iostream>
 #include <fstream>
+#include "../bin/sound/common/conio.h"// include console I/O methods (our wrapper in linux)
 
 //to make compiler happy
 #define GLM_FORCE_RADIANS
@@ -88,10 +89,15 @@ int mbXPrior;
 int mbYPrior;
 
 double consecutivePresses[8] = {0,0,0,0,0,0,0,0};
+irrklang::ISoundEngine* soundEngine = irrklang::createIrrKlangDevice();// start the sound engine with default parameters
 
 //--Main
 int main(int argc, char **argv)
-{
+{   
+    if (!soundEngine)
+        printf("Could not startup engine\n");
+    else
+        soundEngine->play2D("../bin/sound/media/getout.ogg", true);//to play a single sound over the background music simply //soundEngine->play2D("../bin/sound/media/bell.wav");
     //set config data
     simConfig.setWindow(800, 1280);
 
@@ -521,7 +527,7 @@ void cleanUp()
 {
     // Clean up, Clean up
     glutDestroyMenu( menuID );
-
+    soundEngine->drop(); // delete sound engine
     simEntities.cleanup();
 }
 
